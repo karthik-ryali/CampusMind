@@ -28,6 +28,8 @@ from datetime import datetime
 
 import joblib
 from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, or_, func
 from sqlalchemy.orm import sessionmaker, Session
@@ -44,6 +46,10 @@ engine = create_engine(DB_URI, connect_args={"check_same_thread": False}, echo=F
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 app = FastAPI(title="CampusMind Backend (main.py)")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -135,6 +141,10 @@ def escalate_issue_to_next(db: Session, issue: Issue, by_user_id: int) -> Issue:
     db.commit()
     db.refresh(issue)
     return issue
+
+@app.get("/")
+async def read_index():
+    return FileResponse('static/index.html')
 
 @app.on_event("startup")
 def startup():

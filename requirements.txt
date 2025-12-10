@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlmodel
+pydantic
+scikit-learn
+joblib
+numpy
+python-multipart
+faker
+streamlit
+requests
+pandas
+matplotlib
+sqlalchemy

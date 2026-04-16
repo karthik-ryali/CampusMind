@@ -1,5 +1,5 @@
 const API_CONFIG = {
-    BASE_URL: 'http://127.0.0.1:8000',
+    BASE_URL: 'https://campusmind-sife.onrender.com',
     ENDPOINTS: {
         LOGIN: '/auth/login',
         USERS: '/users',

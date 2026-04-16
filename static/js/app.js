@@ -376,9 +376,24 @@ class App {
         document.body.appendChild(container);
         return container;
     }
+
+    fillDemo(email, password) {
+        const emailInput = document.getElementById('email');
+        const passInput = document.getElementById('password');
+
+        if (!emailInput || !passInput) return;
+
+        emailInput.value = email;
+        passInput.value = password;
+    }
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new App();
     window.showToast = (message, type) => window.app.showToast(message, type);
 });
+
+window.fillDemo = (email, password) => {
+    window.app.fillDemo(email, password);
+};

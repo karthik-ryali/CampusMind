@@ -21,11 +21,11 @@ const API_CONFIG = {
     RETRY_DELAY: 1000
 };
 
-(function() {
+(function () {
     const metaTag = document.querySelector('meta[name="api-url"]');
     if (metaTag && metaTag.content) {
-        API_CONFIG.BASE_URL = metaTag.content;
+        API_CONFIG.BASE_URL = metaTag.content.replace(/\/$/, '');
     } else if (window.API_URL) {
-        API_CONFIG.BASE_URL = window.API_URL;
+        API_CONFIG.BASE_URL = window.API_URL.replace(/\/$/, '');
     }
 })();

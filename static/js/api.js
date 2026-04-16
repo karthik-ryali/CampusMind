@@ -19,7 +19,7 @@ class APIService {
 
         try {
             console.log('API Request:', `${this.baseURL}${url}`, config);
-            const response = await fetch(`${this.baseURL}${url}`, config);
+            const response = await fetch(`${this.baseURL}/${url}`, config);
             
             if (!response.ok) {
                 let errorMessage = `HTTP error! status: ${response.status}`;

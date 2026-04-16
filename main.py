@@ -53,16 +53,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8501",
-        "http://127.0.0.1:8501",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "https://campusmind-sife.onrender.com"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -160,6 +152,88 @@ def startup():
     if not os.path.exists(DB_DIR):
         os.makedirs(DB_DIR)
     Base.metadata.create_all(bind=engine)
+    # Auto-seed on first run (Render ephemeral FS: DB is empty after deploy)
+    _auto_seed_if_empty()
+
+def _auto_seed_if_empty():
+    """Seed DB with demo data if no users exist yet."""
+    db = SessionLocal()
+    try:
+        from models import Department, Section
+        user_count = db.query(User).count()
+        if user_count > 0:
+            print(f"DB already has {user_count} users, skipping seed.")
+            return
+        print("DB is empty — running auto-seed...")
+        depts = ["CSE", "AI-ML", "DS", "ECE", "EEE", "MECH", "CIVIL"]
+        dept_objs = []
+        for d in depts:
+            dept = Department(name=d)
+            db.add(dept)
+            db.flush()
+            s1 = Section(name=f"{d}-A", department_id=dept.id)
+            s2 = Section(name=f"{d}-B", department_id=dept.id)
+            db.add_all([s1, s2])
+            dept_objs.append(dept)
+        db.commit()
+
+        vc = User(name="VC Office", email="vc@univ.edu", role="vc", password="12345")
+        db.add(vc)
+        db.commit()
+        db.refresh(vc)
+
+        all_depts = db.query(Department).all()
+        for dept in all_depts:
+            hod = User(
+                name=f"HOD {dept.name}",
+                email=f"hod_{dept.name.lower()}@univ.edu",
+                password="123456",
+                role="hod",
+                department_id=dept.id,
+                reports_to=vc.id,
+            )
+            db.add(hod)
+            db.commit()
+            db.refresh(hod)
+
+            sections = db.query(Section).filter(Section.department_id == dept.id).all()
+            proctors = []
+            for sec in sections:
+                proctor = User(
+                    name=f"Proctor {dept.name} {sec.name}",
+                    email=f"proctor_{dept.name.lower()}_{sec.name.lower()}@univ.edu",
+                    password="1234567",
+                    role="proctor",
+                    department_id=dept.id,
+                    section_id=sec.id,
+                    reports_to=hod.id,
+                )
+                db.add(proctor)
+                db.commit()
+                db.refresh(proctor)
+                proctors.append(proctor)
+
+            for idx, sec in enumerate(sections):
+                students_batch = [
+                    User(
+                        name=f"{dept.name}_Student_{idx*50+i+1}",
+                        email=f"{dept.name.lower()}_stu_{idx*50+i+1}@univ.edu",
+                        password=str(idx * 50 + i + 1),
+                        role="student",
+                        department_id=dept.id,
+                        section_id=sec.id,
+                        reports_to=proctors[idx].id,
+                    )
+                    for i in range(50)
+                ]
+                db.add_all(students_batch)
+                db.commit()
+        print("✅ Auto-seed complete!")
+    except Exception as e:
+        print(f"❌ Auto-seed failed: {e}")
+        db.rollback()
+    finally:
+        db.close()
 
 @app.post("/auth/login")
 def login(email: str = Query(...), password: str = Query(...), db: Session = Depends(get_db)):

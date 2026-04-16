@@ -115,7 +115,7 @@ class App {
                 errorMsg = error.message;
             }
             if (error.message && error.message.includes('Failed to fetch')) {
-                errorMsg = 'Cannot connect to backend. Make sure the server is running on http://127.0.0.1:8000';
+                errorMsg = 'Cannot connect to backend. The server may be starting up (Render free tier takes ~30s). Please try again.';
             }
             errorDiv.textContent = errorMsg + ' Please check your credentials and ensure the backend is running.';
             errorDiv.classList.add('show');

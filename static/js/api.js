@@ -19,7 +19,7 @@ class APIService {
 
         try {
             console.log('API Request:', `${this.baseURL}${url}`, config);
-            const response = await fetch(`${this.baseURL}/${url}`, config);
+            const response = await fetch(`${this.baseURL}${url.startsWith('/') ? url : '/' + url}`, config);
             
             if (!response.ok) {
                 let errorMessage = `HTTP error! status: ${response.status}`;
@@ -45,8 +45,8 @@ class APIService {
             return data;
         } catch (error) {
             console.error('API Error:', error);
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                throw new Error('Failed to fetch - Backend server is not running or CORS error');
+            if (error.message && error.message.includes('Failed to fetch')) {
+                error.message = 'Cannot connect to backend. The server may be starting up, please try again in a moment.';
             }
             throw error;
         }

@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 from datetime import datetime
 
-API = "http://127.0.0.1:8000"
+API = "https://campusmind-sife.onrender.com"
 
 st.set_page_config(page_title="CampusMind", layout="wide", initial_sidebar_state="expanded")
 
